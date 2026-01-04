@@ -47,7 +47,7 @@ namespace API_Practice.Endpoints
         /// <summary>
         /// データストアに保存されているすべてのクーポンを取得し、HTTP 200（OK）レスポンスとして返します。
         /// </summary>
-        /// <param name="_couponRepo"> クーポンデータへアクセスするためのリポジトリ。</param>
+        /// <param name="_couponRepo">クーポンデータへアクセスするためのリポジトリ。</param>
         /// <param name="_logger">操作ログを記録するためのロガーインスタンス。</param>
         /// <returns>
         /// 非同期操作を表すタスク。タスクの結果は、すべてのクーポン一覧を含む API レスポンスをHTTP 200（OK）として返します。
@@ -64,8 +64,8 @@ namespace API_Practice.Endpoints
         /// <summary>
         /// 指定された一意の ID を持つクーポンを取得し、その結果を HTTP レスポンスとして返します。
         /// </summary>
-        /// <param name="id"> 取得対象となるクーポンの一意の ID。存在する有効なクーポン ID である必要があります。</param>
-        /// <param name="_couponRepo"> クーポンデータへアクセスするためのリポジトリ。</param>
+        /// <param name="id">取得対象となるクーポンの一意の ID。存在する有効なクーポン ID である必要があります。</param>
+        /// <param name="_couponRepo">クーポンデータへアクセスするためのリポジトリ。</param>
         /// <param name="_logger">操作ログを記録するためのロガーインスタンス。</param>
         /// <returns>
         /// 非同期操作を表すタスク。タスクの結果には、クーポンが見つかった場合はそのデータを含む HTTP レスポンスが返されます。
@@ -88,10 +88,10 @@ namespace API_Practice.Endpoints
         /// エラー情報を含む BadRequest レスポンスを返します。
         /// 正常に作成できた場合は、作成されたクーポンの詳細をレスポンスとして返します。
         /// </remarks>
-        /// <param name="coupon_C_DTO"> 作成するクーポンの情報を保持する DTO。すべてのバリデーション要件を満たす必要があります。</param>
-        /// <param name="_couponRepo"> クーポンデータへアクセスするためのリポジトリ。</param>
-        /// <param name="_validator"> クーポンデータが必要な条件を満たしているか検証するためのバリデータ。</param>
-        /// <param name="_mapper"> DTO とドメインモデル間の変換を行うためのマッパー。</param>
+        /// <param name="coupon_C_DTO">作成するクーポンの情報を保持する DTO。すべてのバリデーション要件を満たす必要があります。</param>
+        /// <param name="_couponRepo">クーポンデータへアクセスするためのリポジトリ。</param>
+        /// <param name="_validator">クーポンデータが必要な条件を満たしているか検証するためのバリデータ。</param>
+        /// <param name="_mapper">DTO とドメインモデル間の変換を行うためのマッパー。</param>
         /// <param name="_logger">操作ログを記録するためのロガーインスタンス。</param>
         /// <returns>
         /// 作成に成功した場合は、作成されたクーポンデータを含む API レスポンスを返します。
@@ -152,10 +152,10 @@ namespace API_Practice.Endpoints
         /// バリデーションに失敗した場合は、エラー内容を含む BadRequest レスポンスを返します。
         /// このメソッドは ASP.NET Core の Minimal API エンドポイントで使用されることを想定しています。
         /// </remarks>
-        /// <param name="coupon_U_DTO"> 更新後のクーポン情報を保持する DTO。すべてのバリデーションルールを満たす必要があります。</param>
-        /// <param name="_couponRepo"> クーポンデータへアクセスするためのリポジトリ。</param>
-        /// <param name="_validator"> クーポンデータが必要な条件を満たしているか検証するためのバリデータ。</param>
-        /// <param name="_mapper"> DTO とドメインモデル間の変換を行うためのマッパー。</param>
+        /// <param name="coupon_U_DTO">更新後のクーポン情報を保持する DTO。すべてのバリデーションルールを満たす必要があります。</param>
+        /// <param name="_couponRepo">クーポンデータへアクセスするためのリポジトリ。</param>
+        /// <param name="_validator">クーポンデータが必要な条件を満たしているか検証するためのバリデータ。</param>
+        /// <param name="_mapper">DTO とドメインモデル間の変換を行うためのマッパー。</param>
         /// <param name="_logger">操作ログを記録するためのロガーインスタンス。</param>
         /// <returns>
         /// 更新に成功した場合は更新後のクーポンデータを含む成功レスポンスを返し、
@@ -193,8 +193,8 @@ namespace API_Practice.Endpoints
         /// <summary>
         /// 指定された ID を持つクーポンをデータストアから削除します。
         /// </summary>
-        /// <param name="id"> 削除対象となるクーポンの一意の ID。</param>
-        /// <param name="_couponRepo"> クーポンデータへアクセスするためのリポジトリ。</param>
+        /// <param name="id">削除対象となるクーポンの一意の ID。</param>
+        /// <param name="_couponRepo">クーポンデータへアクセスするためのリポジトリ。</param>
         /// <param name="_logger">操作ログを記録するためのロガーインスタンス。</param>
         /// <returns>
         /// 削除処理の結果を含む API レスポンス。クーポンが削除された場合は 204（No Content）を返し、
