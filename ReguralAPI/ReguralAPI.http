@@ -1,6 +1,0 @@
-@ReguralAPI_HostAddress = http://localhost:5054
-
-GET {{ReguralAPI_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
