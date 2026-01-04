@@ -1,3 +1,5 @@
+using API_Practice.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -13,18 +15,37 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// --- サンプル API ルートの実装 --- //
-app.MapGet("/hellowGET", () => "Hello GET");
-app.MapPost("/helloPOST", () => "Hello POST");
-app.MapGet("/hellowBadRequest", () =>
+# region Sample Endpoints
+// ==============================
+//  Sample Endpoints
+// ==============================
+//app.MapGet("/hellowGET", () => "Hello GET");
+//app.MapPost("/helloPOST", () => "Hello POST");
+//app.MapGet("/hellowBadRequest", () =>
+//{
+//    return Results.BadRequest("Exception!!");
+//});
+//app.MapGet("/helloInteger/{id:int}", (int id) =>
+//{
+//    return Results.Ok("Id!!" + id);
+//});
+# endregion
+
+// ==============================
+//  Coupon Endpoints
+// ==============================
+
+// クーポン一覧取得　
+app.MapGet("api/coupon", () =>
 {
-    return Results.BadRequest("Exception!!");
+    return Results.Ok(CouponStore.couponList);
 });
-app.MapGet("/helloInteger/{id:int}", (int id) =>
+
+// Idを指定してクーポンを取得
+app.MapGet("api/coupon/{id:int}", (int id) =>
 {
-    return Results.Ok("Id!!" + id);
+    return Results.Ok(CouponStore.couponList.FirstOrDefault(u => u.Id == id));
 });
-// ------------------------- //
 
 app.UseHttpsRedirection();
 
