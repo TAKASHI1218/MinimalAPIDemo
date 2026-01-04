@@ -10,7 +10,7 @@ namespace API_Practice.Repository.IRepository
 
         Task<Coupon> GetCouponByNameAsync(string couponName);
 
-        Task CreateAsync(Coupon coupon);
+        Task CreateCouponAsync(Coupon coupon);
 
         void UpdateCoupon(Coupon coupon);
 

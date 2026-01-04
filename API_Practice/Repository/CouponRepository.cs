@@ -29,7 +29,7 @@ namespace API_Practice.Repository
             return await _db.Coupons.Where(x => x.Name.ToLower() == couponName.ToLower()).FirstOrDefaultAsync();
         }
 
-        public async Task CreateAsync(Coupon coupon)
+        public async Task CreateCouponAsync(Coupon coupon)
         {
             await _db.Coupons.AddAsync(coupon);
         }
