@@ -1,4 +1,6 @@
 using API_Practice.Data;
+using API_Practice.Model;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,14 +41,43 @@ if (app.Environment.IsDevelopment())
 app.MapGet("api/coupon", () =>
 {
     return Results.Ok(CouponStore.couponList);
-});
+}).WithName("GetCouponList");
 
 // Idを指定してクーポンを取得
 app.MapGet("api/coupon/{id:int}", (int id) =>
 {
     return Results.Ok(CouponStore.couponList.FirstOrDefault(u => u.Id == id));
+}).WithName("GetCouponById");
+
+// クーポン作成
+app.MapPost("api/coupon", ([FromBody] Coupon coupon) => {
+    if(string.IsNullOrEmpty(coupon.Name))
+    {
+        return Results.BadRequest("クーポン名を入力してください");
+    }
+
+    if (CouponStore.couponList.FirstOrDefault(x => x.Name.ToLower() == coupon.Name.ToLower()) != null)
+    {
+        return Results.BadRequest("すでに使用されているクーポン名です");
+    }
+
+    coupon.Id = CouponStore.couponList.Max(x => x.Id) + 1;
+
+    CouponStore.couponList.Add(coupon);
+
+    // 201を返しGetCouponByIdルートよりデータ取得可能
+    return Results.CreatedAtRoute("GetCouponById", new { coupon.Id }, coupon);
+    //※右記と同義「return Results.Created($"/api/coupon/{coupon.Id}",coupon);」
+
+}).WithName("CreateCoupon");
+
+app.MapPut("api/coupon", () => {
+
 });
 
+app.MapDelete("api/coupon", () => {
+
+});
 app.UseHttpsRedirection();
 
 var summaries = new[]
