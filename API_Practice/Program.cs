@@ -138,9 +138,29 @@ app.MapPut("api/coupon", async ([FromBody] CouponUpdateDTO coupon_U_DTO, IValida
     return Results.Ok(response);
 }).WithName("UpdateCoupon").Accepts<CouponUpdateDTO>("application/json").Produces<APIResponse>(200).Produces(400);
 
-app.MapDelete("api/coupon", () => {
+// クーポンの削除
+app.MapDelete("$api/coupon/{id:int}", (int id, ILogger<Program> _logger) =>
+{
 
-});
+    _logger.Log(LogLevel.Information, "クーポン削除");
+
+    APIResponse response = new() { IsSuucess = false, StatusCode = HttpStatusCode.BadRequest };
+
+    Coupon counponFromStore = CouponStore.couponList.FirstOrDefault(x => x.Id == id);
+    if (counponFromStore != null)
+    {
+        CouponStore.couponList.Remove(counponFromStore);
+        response.IsSuucess = true;
+        response.StatusCode = HttpStatusCode.NoContent;
+        return Results.Ok(response);
+    }
+    else
+    {
+        response.ErrorMessage.Add("存在しないクーポンです");
+        return Results.BadRequest(response);
+    }
+}).WithName("DeleteCoupon").Produces<APIResponse>(204).Produces(400);
+
 app.UseHttpsRedirection();
 
 var summaries = new[]
