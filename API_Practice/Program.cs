@@ -3,6 +3,7 @@ using API_Practice.Data;
 using API_Practice.Model;
 using API_Practice.Model.DTO;
 using AutoMapper;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(MappingConfig));
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 var app = builder.Build();
 
@@ -56,12 +58,14 @@ app.MapGet("api/coupon/{id:int}", (int id, ILogger<Program> _logger) =>
 }).WithName("GetCouponById").Produces<Coupon>(200);
 
 // クーポン作成
-app.MapPost("api/coupon", (IMapper _mapper, [FromBody] CouponCreateDTO coupon_C_DTO, ILogger<Program> _logger) =>
+app.MapPost("api/coupon", ([FromBody] CouponCreateDTO coupon_C_DTO,IValidator<CouponCreateDTO> _validator ,IMapper _mapper,  ILogger<Program> _logger) =>
 {
     _logger.Log(LogLevel.Information, "クーポン作成");
-    if (string.IsNullOrEmpty(coupon_C_DTO.Name))
+
+    var validationResult = _validator.ValidateAsync(coupon_C_DTO).GetAwaiter().GetResult();
+    if (!validationResult.IsValid)
     {
-        return Results.BadRequest("クーポン名を入力してください");
+        return Results.BadRequest(validationResult.Errors.FirstOrDefault());
     }
 
     if (CouponStore.couponList.FirstOrDefault(x => x.Name.ToLower() == coupon_C_DTO.Name.ToLower()) != null)
