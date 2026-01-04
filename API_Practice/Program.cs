@@ -13,6 +13,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// --- サンプル API ルートの実装 --- //
+app.MapGet("/hellowGET", () => "Hello GET");
+app.MapPost("/helloPOST", () => "Hello POST");
+app.MapGet("/hellowBadRequest", () =>
+{
+    return Results.BadRequest("Exception!!");
+});
+app.MapGet("/helloInteger/{id:int}", (int id) =>
+{
+    return Results.Ok("Id!!" + id);
+});
+// ------------------------- //
+
 app.UseHttpsRedirection();
 
 var summaries = new[]
