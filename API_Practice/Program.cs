@@ -38,20 +38,23 @@ if (app.Environment.IsDevelopment())
 // ==============================
 
 // クーポン一覧取得　
-app.MapGet("api/coupon", () =>
+app.MapGet("api/coupon", (ILogger<Program> _logger) =>
 {
+    _logger.Log(LogLevel.Information, "クーポン一覧取得");
     return Results.Ok(CouponStore.couponList);
 }).WithName("GetCouponList").Produces<IEnumerable<Coupon>>(200);
 
 // Idを指定してクーポンを取得
-app.MapGet("api/coupon/{id:int}", (int id) =>
+app.MapGet("api/coupon/{id:int}", (int id, ILogger<Program> _logger) =>
 {
+    _logger.Log(LogLevel.Information, "Idからクーポン取得");
     return Results.Ok(CouponStore.couponList.FirstOrDefault(u => u.Id == id));
 }).WithName("GetCouponById").Produces<Coupon>(200);
 
 // クーポン作成
-app.MapPost("api/coupon", ([FromBody] Coupon coupon) =>
+app.MapPost("api/coupon", ([FromBody] Coupon coupon, ILogger<Program> _logger) =>
 {
+    _logger.Log(LogLevel.Information, "クーポン作成");
     if (string.IsNullOrEmpty(coupon.Name))
     {
         return Results.BadRequest("クーポン名を入力してください");
