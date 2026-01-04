@@ -46,29 +46,33 @@ if (app.Environment.IsDevelopment())
 //  Coupon Endpoints
 // ==============================
 
-// クーポン一覧取得　
-app.MapGet("api/coupon", (ILogger<Program> _logger) =>
+// -- クーポン一覧取得 -- //　
+app.MapGet("api/coupon", (ApplicationDbContext _db, ILogger<Program> _logger) =>
 {
     APIResponse response = new();
-    response.Result = CouponStore.couponList;
+    response.Result = _db.Coupons;
     response.IsSuucess = true;
     response.StatusCode = HttpStatusCode.OK;
     return Results.Ok(response);
 }).WithName("GetCouponList").Produces<APIResponse>(200);
 
-// Idを指定してクーポンを取得
-app.MapGet("api/coupon/{id:int}", (int id, ILogger<Program> _logger) =>
+// -- Idを指定してクーポンを取得 -- //
+app.MapGet("api/coupon/{id:int}",async (int id, ApplicationDbContext _db, ILogger<Program> _logger) =>
 {
     _logger.Log(LogLevel.Information, "Idからクーポン取得");
     APIResponse response = new();
-    response.Result = CouponStore.couponList.FirstOrDefault(u => u.Id == id);
+    response.Result = await _db.Coupons.FirstOrDefaultAsync(u => u.Id == id);
     response.IsSuucess = true;
     response.StatusCode = HttpStatusCode.OK;
     return Results.Ok(response);
 }).WithName("GetCouponById").Produces<APIResponse>(200);
 
-// クーポン作成
-app.MapPost("api/coupon", async ([FromBody] CouponCreateDTO coupon_C_DTO,IValidator<CouponCreateDTO> _validator ,IMapper _mapper,  ILogger<Program> _logger) =>
+// -- クーポン作成 -- //　
+app.MapPost("api/coupon", async ([FromBody] CouponCreateDTO coupon_C_DTO, 
+                                 ApplicationDbContext _db, 
+                                 IValidator<CouponCreateDTO> _validator ,
+                                 IMapper _mapper, 
+                                 ILogger<Program> _logger) =>
 {
     _logger.Log(LogLevel.Information, "クーポン作成");
 
@@ -83,18 +87,19 @@ app.MapPost("api/coupon", async ([FromBody] CouponCreateDTO coupon_C_DTO,IValida
     }
 
     // 独自実装によるバリデーション処理
-    if (CouponStore.couponList.FirstOrDefault(x => x.Name.ToLower() == coupon_C_DTO.Name.ToLower()) != null)
+    if (await _db.Coupons.FirstOrDefaultAsync(x => x.Name.ToLower() == coupon_C_DTO.Name.ToLower()) != null)
     {
         response.ErrorMessage.Add("すでに使用されているクーポン名です");
         return Results.BadRequest(response);
     }
 
-    // 1. CouponにCouponCreateDTOをマップ
+    // 1. CouponにCouponCreateDTOをマップ、作成日登録
     Coupon coupon = _mapper.Map<Coupon>(coupon_C_DTO);
+    coupon.Created = DateTime.Now;
 
     // 2. Couponに追加
-    coupon.Id = CouponStore.couponList.Max(x => x.Id) + 1;
-    CouponStore.couponList.Add(coupon);
+    _db.Coupons.Add(coupon);
+    await _db.SaveChangesAsync();
 
     // 3. 外部公開用のデータ表示のためCoponDTOにCouponをマップ
     CouponDTO couponDTO = _mapper.Map<CouponDTO>(coupon);
@@ -113,8 +118,12 @@ app.MapPost("api/coupon", async ([FromBody] CouponCreateDTO coupon_C_DTO,IValida
     // CouponCreateDTOを受け取りCouponDTOを返す
 }).WithName("CreateCoupon").Accepts<CouponCreateDTO>("application/json").Produces<APIResponse>(201).Produces(400);
 
-// クーポン更新
-app.MapPut("api/coupon", async ([FromBody] CouponUpdateDTO coupon_U_DTO, IValidator<CouponUpdateDTO> _validator, IMapper _mapper, ILogger<Program> _logger) =>
+// -- クーポン更新 -- //　
+app.MapPut("api/coupon", async ([FromBody] CouponUpdateDTO coupon_U_DTO,
+                                ApplicationDbContext _db, 
+                                IValidator<CouponUpdateDTO> _validator, 
+                                IMapper _mapper, 
+                                ILogger<Program> _logger) =>
 {
     _logger.Log(LogLevel.Information, "クーポン更新");
 
@@ -128,11 +137,13 @@ app.MapPut("api/coupon", async ([FromBody] CouponUpdateDTO coupon_U_DTO, IValida
         return Results.BadRequest(response);
     }
 
-    Coupon couponFromStore = CouponStore.couponList.FirstOrDefault(x => x.Id == coupon_U_DTO.Id);
+    Coupon couponFromStore = await _db.Coupons.FirstOrDefaultAsync(x => x.Id == coupon_U_DTO.Id);
     couponFromStore.IsActive = coupon_U_DTO.IsActive;
     couponFromStore.Name = coupon_U_DTO.Name;
     couponFromStore.Percent = coupon_U_DTO.Percent;
     couponFromStore.LastUpdated = DateTime.Now;
+    //_db.Update(_mapper.Map<Coupon>(coupon_U_DTO)); 左記でも可能
+    await _db.SaveChangesAsync();
 
     response.Result = _mapper.Map<CouponDTO>(couponFromStore);
     response.IsSuucess = true;
@@ -140,18 +151,18 @@ app.MapPut("api/coupon", async ([FromBody] CouponUpdateDTO coupon_U_DTO, IValida
     return Results.Ok(response);
 }).WithName("UpdateCoupon").Accepts<CouponUpdateDTO>("application/json").Produces<APIResponse>(200).Produces(400);
 
-// クーポンの削除
-app.MapDelete("$api/coupon/{id:int}", (int id, ILogger<Program> _logger) =>
-{
-
+// -- クーポンの削除 -- //　
+app.MapDelete("$api/coupon/{id:int}", async (int id, ApplicationDbContext _db, ILogger<Program> _logger) =>
+{ 
     _logger.Log(LogLevel.Information, "クーポン削除");
 
     APIResponse response = new() { IsSuucess = false, StatusCode = HttpStatusCode.BadRequest };
 
-    Coupon counponFromStore = CouponStore.couponList.FirstOrDefault(x => x.Id == id);
+    Coupon counponFromStore = await _db.Coupons.FirstOrDefaultAsync(x => x.Id == id);
     if (counponFromStore != null)
     {
-        CouponStore.couponList.Remove(counponFromStore);
+        _db.Coupons.Remove(counponFromStore);
+        await _db.SaveChangesAsync();
         response.IsSuucess = true;
         response.StatusCode = HttpStatusCode.NoContent;
         return Results.Ok(response);
@@ -165,6 +176,7 @@ app.MapDelete("$api/coupon/{id:int}", (int id, ILogger<Program> _logger) =>
 
 app.UseHttpsRedirection();
 
+# region Weatherforecast
 var summaries = new[]
 {
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
@@ -183,6 +195,7 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
+# endregion
 
 app.Run();
 
@@ -190,3 +203,4 @@ internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
+
