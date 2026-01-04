@@ -17,6 +17,12 @@ namespace API_Practice.Repository
         private readonly IConfiguration _configuration;
         private string secretKey;
 
+        /// <summary>
+        /// コンテキスト
+        /// </summary>
+        /// <param name="db"> アプリケーションデータへのアクセスおよび管理を行うためのデータベースコンテキスト。</param>
+        /// <param name="mapper"> ドメインモデルと DTO（データ転送オブジェクト）間のマッピングを行うためのオブジェクトマッパー。</param>
+        /// <param name="configuration">API シークレットなど、アプリケーション設定を取得するための構成プロバイダー。</param>
         public AuthRepository(ApplicationDbContext db, IMapper mapper,IConfiguration configuration)
         {
             _db = db;
@@ -34,6 +40,17 @@ namespace API_Practice.Repository
             return false;
         }
 
+        /// <summary>
+        /// 提供されたログイン情報に基づいてユーザーを認証し、認証に成功した場合は JWT トークンを含むLoginResponseDTOを返します。
+        /// </summary>
+        /// <remarks>
+        /// 返される JWT トークンには、ユーザー名とロール（権限）のクレームが含まれ、発行から 7 日間有効です。
+        /// </remarks>
+        /// <param name="loginRequestDTO">ユーザー名とパスワードを含むログイン情報。</param>
+        /// <returns>
+        /// 認証に成功した場合は、ユーザー情報と JWT トークンを含む <see cref="LoginResponseDTO"/> を返します。
+        /// 認証情報が無効な場合は null を返します。
+        /// </returns>
         public async Task<LoginResponseDTO> Login(LoginRequestDTO loginRequestDTO)
         {
             var user = _db.LocalUsers.SingleOrDefault(x => x.UserName == loginRequestDTO.UserName
@@ -59,7 +76,7 @@ namespace API_Practice.Repository
                 Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
-            // トークン作成、LoginResponseDTOの作成
+            // トークン作成をし、LoginResponseDTOを作成する
             var token = tokenHandler.CreateToken(tokenDescriptor);
             LoginResponseDTO loginResponseDTO = new()
             {
@@ -70,6 +87,18 @@ namespace API_Practice.Repository
             return loginResponseDTO;
         }
 
+        /// <summary>
+        /// 指定された登録情報を使用して新しいユーザーを登録し、作成されたユーザー情報を返します。
+        /// </summary>
+        /// <remarks>
+        /// 暫定的に登録されたユーザーにはデフォルトで 'admin' ロールが割り当てられます。
+        /// セキュリティ上の理由から、返却時にはパスワードはクリアされます。
+        /// </remarks>
+        /// <param name="requestDTO">ユーザー名、パスワード、名前（表示名）を含むユーザー登録情報。</param>
+        /// <returns>
+        /// 新しく登録されたユーザーを表す <see cref="UserDTO"/>。
+        /// 返却されるオブジェクトではパスワードは空になります。
+        /// </returns>
         public UserDTO Register(RegisterationRequestDTO requestDTO)
         {
             LocalUser userObj = new()

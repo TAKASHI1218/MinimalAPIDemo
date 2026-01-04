@@ -23,11 +23,11 @@ namespace API_Practice.Endpoints
         public static void ConfigureAuthEndpoints(this WebApplication app)
         {
             // ログイン
-            app.MapGet("api/login", Login)
+            app.MapPost("api/login", Login)
                 .WithName("Login").Accepts<LoginRequestDTO>("application/json").Produces<LoginResponseDTO>(200).Produces(400);
             
             // ユーザー登録
-            app.MapGet("api/regist", Register)
+            app.MapPost("api/regist", Register)
                 .WithName("Regist").Accepts<RegisterationRequestDTO>("application/json").Produces<UserDTO>(200).Produces(400);
         }
 

@@ -15,6 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
+
 // Swagger
 builder.Services.AddSwaggerGen();
 // DB
@@ -50,8 +51,12 @@ if (app.Environment.IsDevelopment())
 //});
 # endregion
 
-// CouponEndpoints　
+// ユーザー認証
+app.UseAuthentication();
+
+// Endpoints　
 app.ConfigureCouponEndpoints();
+app.ConfigureAuthEndpoints();
 
 app.UseHttpsRedirection();
 
