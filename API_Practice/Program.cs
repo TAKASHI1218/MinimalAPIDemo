@@ -109,11 +109,34 @@ app.MapPost("api/coupon", async ([FromBody] CouponCreateDTO coupon_C_DTO,IValida
 
     // 作成に成功した場合は"201"作成できなかった場合は"400"を返す
     // CouponCreateDTOを受け取りCouponDTOを返す
-}).WithName("CreateCoupon").Accepts<CouponCreateDTO>("application/json").Produces<APIResponse>(201).Produces(400); 
+}).WithName("CreateCoupon").Accepts<CouponCreateDTO>("application/json").Produces<APIResponse>(201).Produces(400);
 
-app.MapPut("api/coupon", () => {
+// クーポン更新
+app.MapPut("api/coupon", async ([FromBody] CouponUpdateDTO coupon_U_DTO, IValidator<CouponUpdateDTO> _validator, IMapper _mapper, ILogger<Program> _logger) =>
+{
+    _logger.Log(LogLevel.Information, "クーポン更新");
 
-});
+    APIResponse response = new() { IsSuucess = false, StatusCode = HttpStatusCode.BadRequest };
+
+    // FluentValidationによるバリデーション処理
+    var validationResult = await _validator.ValidateAsync(coupon_U_DTO);
+    if (!validationResult.IsValid)
+    {
+        response.ErrorMessage.Add(validationResult.Errors.FirstOrDefault().ToString());
+        return Results.BadRequest(response);
+    }
+
+    Coupon couponFromStore = CouponStore.couponList.FirstOrDefault(x => x.Id == coupon_U_DTO.Id);
+    couponFromStore.IsActive = coupon_U_DTO.IsActive;
+    couponFromStore.Name = coupon_U_DTO.Name;
+    couponFromStore.Percent = coupon_U_DTO.Percent;
+    couponFromStore.LastUpdated = DateTime.Now;
+
+    response.Result = _mapper.Map<CouponDTO>(couponFromStore);
+    response.IsSuucess = true;
+    response.StatusCode = HttpStatusCode.OK;
+    return Results.Ok(response);
+}).WithName("UpdateCoupon").Accepts<CouponUpdateDTO>("application/json").Produces<APIResponse>(200).Produces(400);
 
 app.MapDelete("api/coupon", () => {
 
