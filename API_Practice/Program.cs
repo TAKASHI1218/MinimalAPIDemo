@@ -41,17 +41,18 @@ if (app.Environment.IsDevelopment())
 app.MapGet("api/coupon", () =>
 {
     return Results.Ok(CouponStore.couponList);
-}).WithName("GetCouponList");
+}).WithName("GetCouponList").Produces<IEnumerable<Coupon>>(200);
 
 // Idを指定してクーポンを取得
 app.MapGet("api/coupon/{id:int}", (int id) =>
 {
     return Results.Ok(CouponStore.couponList.FirstOrDefault(u => u.Id == id));
-}).WithName("GetCouponById");
+}).WithName("GetCouponById").Produces<Coupon>(200);
 
 // クーポン作成
-app.MapPost("api/coupon", ([FromBody] Coupon coupon) => {
-    if(string.IsNullOrEmpty(coupon.Name))
+app.MapPost("api/coupon", ([FromBody] Coupon coupon) =>
+{
+    if (string.IsNullOrEmpty(coupon.Name))
     {
         return Results.BadRequest("クーポン名を入力してください");
     }
@@ -69,7 +70,8 @@ app.MapPost("api/coupon", ([FromBody] Coupon coupon) => {
     return Results.CreatedAtRoute("GetCouponById", new { coupon.Id }, coupon);
     //※右記と同義「return Results.Created($"/api/coupon/{coupon.Id}",coupon);」
 
-}).WithName("CreateCoupon");
+    // 作成に成功した場合は"201"作成できなかった場合は"400"を返す
+}).WithName("CreateCoupon").Accepts<Coupon>("application/json").Produces<Coupon>(201).Produces(400); 
 
 app.MapPut("api/coupon", () => {
 
