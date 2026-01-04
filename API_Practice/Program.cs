@@ -5,6 +5,7 @@ using API_Practice.Model.DTO;
 using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,31 +47,44 @@ if (app.Environment.IsDevelopment())
 // クーポン一覧取得　
 app.MapGet("api/coupon", (ILogger<Program> _logger) =>
 {
-    _logger.Log(LogLevel.Information, "クーポン一覧取得");
-    return Results.Ok(CouponStore.couponList);
-}).WithName("GetCouponList").Produces<IEnumerable<Coupon>>(200);
+    APIResponse response = new();
+    response.Result = CouponStore.couponList;
+    response.IsSuucess = true;
+    response.StatusCode = HttpStatusCode.OK;
+    return Results.Ok(response);
+}).WithName("GetCouponList").Produces<APIResponse>(200);
 
 // Idを指定してクーポンを取得
 app.MapGet("api/coupon/{id:int}", (int id, ILogger<Program> _logger) =>
 {
     _logger.Log(LogLevel.Information, "Idからクーポン取得");
-    return Results.Ok(CouponStore.couponList.FirstOrDefault(u => u.Id == id));
-}).WithName("GetCouponById").Produces<Coupon>(200);
+    APIResponse response = new();
+    response.Result = CouponStore.couponList.FirstOrDefault(u => u.Id == id);
+    response.IsSuucess = true;
+    response.StatusCode = HttpStatusCode.OK;
+    return Results.Ok(response);
+}).WithName("GetCouponById").Produces<APIResponse>(200);
 
 // クーポン作成
-app.MapPost("api/coupon", ([FromBody] CouponCreateDTO coupon_C_DTO,IValidator<CouponCreateDTO> _validator ,IMapper _mapper,  ILogger<Program> _logger) =>
+app.MapPost("api/coupon", async ([FromBody] CouponCreateDTO coupon_C_DTO,IValidator<CouponCreateDTO> _validator ,IMapper _mapper,  ILogger<Program> _logger) =>
 {
     _logger.Log(LogLevel.Information, "クーポン作成");
 
-    var validationResult = _validator.ValidateAsync(coupon_C_DTO).GetAwaiter().GetResult();
+    APIResponse response = new() {IsSuucess = false, StatusCode = HttpStatusCode.BadRequest };
+
+    // FluentValidationによるバリデーション処理
+    var validationResult = await _validator.ValidateAsync(coupon_C_DTO);
     if (!validationResult.IsValid)
     {
-        return Results.BadRequest(validationResult.Errors.FirstOrDefault());
+        response.ErrorMessage.Add(validationResult.Errors.FirstOrDefault().ToString());
+        return Results.BadRequest(response);
     }
 
+    // 独自実装によるバリデーション処理
     if (CouponStore.couponList.FirstOrDefault(x => x.Name.ToLower() == coupon_C_DTO.Name.ToLower()) != null)
     {
-        return Results.BadRequest("すでに使用されているクーポン名です");
+        response.ErrorMessage.Add("すでに使用されているクーポン名です");
+        return Results.BadRequest(response);
     }
 
     // 1. CouponにCouponCreateDTOをマップ
@@ -84,12 +98,18 @@ app.MapPost("api/coupon", ([FromBody] CouponCreateDTO coupon_C_DTO,IValidator<Co
     CouponDTO couponDTO = _mapper.Map<CouponDTO>(coupon);
 
     // 201を返しGetCouponByIdルートよりデータ取得可能
-    return Results.CreatedAtRoute("GetCouponById", new { coupon.Id }, couponDTO);
-    //※右記と同義「return Results.Created($"/api/coupon/{coupon.Id}",coupon);」
+    response.Result = couponDTO;
+    response.IsSuucess = true;
+    response.StatusCode = HttpStatusCode.OK;
+    return Results.Ok(response);
+
+    // 参考：過去の処理
+    // return Results.CreatedAtRoute("GetCouponById", new { coupon.Id }, couponDTO);
+    // return Results.Created($"/api/coupon/{coupon.Id}",coupon);
 
     // 作成に成功した場合は"201"作成できなかった場合は"400"を返す
     // CouponCreateDTOを受け取りCouponDTOを返す
-}).WithName("CreateCoupon").Accepts<CouponCreateDTO>("application/json").Produces<CouponDTO>(201).Produces(400); 
+}).WithName("CreateCoupon").Accepts<CouponCreateDTO>("application/json").Produces<APIResponse>(201).Produces(400); 
 
 app.MapPut("api/coupon", () => {
 
