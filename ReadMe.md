@@ -48,3 +48,14 @@ Minimal API は、最小限のコードで高速な HTTP Web API を構築でき
 　add-migration AddMinimalAPITablesToDb
 5. パッケージマネージャーコンソールで以下を実行
 　update-database
+
+## アプリについて
+### AuthEndpoints
+- POST:/api/regist → ユーザー登録をすると「LocalUsers」テーブルに登録されます
+- POST:/api/login  → 「LocalUsers」に登録されたユーザーの場合ログインすることができ認証キーが発行されます
+### CouponEndpoints
+- GET:/api/coupon  → 「Coupons」テーブルに登録されているクーポン一覧が表示されます
+- POST:/api/coupon → 「Coupons」テーブルにクーポンを登録します
+- PUT:/api/coupon  → 「Coupons」テーブルに登録されているクーポンの情報を更新します
+- GET:/api/coupon/{id} → パラメータのidのクーポンが表示されます
+- DELETE:/api/coupon/{id} → パラメータのidのクーポンが削除されます
